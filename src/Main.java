@@ -12,12 +12,12 @@ public class Main {
         // 2. Тестируем обновление задачи
         task1.setDescription("Обновленное описание");
         task1.setStatus(Status.IN_PROGRESS);
-        manager.updateTask(task1.getId(), task1);
+        manager.updateTask(task1);
 
         System.out.println("Обновленная задача: " + manager.getTaskById(task1.getId()));
 
         // 3. Тестируем создание эпика и подзадач
-        Epic epic1 = new Epic("Эпик 1", "Описание эпика", Status.NEW);
+        Epic epic1 = new Epic("Эпик 1", "Описание эпика");
         manager.createEpic(epic1);
         System.out.println("Создан эпик: " + manager.getEpicById(epic1.getId()));
 
