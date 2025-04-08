@@ -1,7 +1,9 @@
+import java.util.List;
+
 public class Main {
 
     public static void main(String[] args) {
-        TaskManager manager = new TaskManager();
+        /*InMemoryTaskManager manager = new InMemoryTaskManager();
 
         // 1. Тестируем создание обычной задачи
         Task task1 = new Task("Задача 1", "Описание задачи 1", Status.NEW);
@@ -51,7 +53,21 @@ public class Main {
 
         // 7. Удаление задачи
         manager.removeTaskById(task1.getId());
-        System.out.println("Задача после удаления: " + manager.getTaskById(task1.getId()));
+        System.out.println("Задача после удаления: " + manager.getTaskById(task1.getId()));*/
+
+        TaskManager manager = Managers.getDefault();
+
+        Task task1 = new Task("Task 1", "Description", Status.NEW);
+        manager.createTask(task1);
+
+        Epic epic1 = new Epic("Epic 1", "Description");
+        manager.createEpic(epic1);
+
+        manager.getTaskById(task1.getId());
+        manager.getEpicById(epic1.getId());
+
+        List<Task> history = manager.getHistory();
+        System.out.println(history.size()); // Должно быть 2
     }
 }
 
