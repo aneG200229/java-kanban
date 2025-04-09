@@ -65,9 +65,10 @@ public class Main {
 
         manager.getTaskById(task1.getId());
         manager.getEpicById(epic1.getId());
+        manager.removeTaskById(task1.getId());
 
         List<Task> history = manager.getHistory();
-        System.out.println(history.size()); // Должно быть 2
+        System.out.println(history.size()); // Должно быть 1
     }
 }
 

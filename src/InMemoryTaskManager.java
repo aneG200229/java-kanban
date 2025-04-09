@@ -4,9 +4,9 @@ import java.util.Map;
 import java.util.ArrayList;
 
 public class InMemoryTaskManager implements TaskManager {
-    private Map<Integer, Task> taskMap = new HashMap<>();
-    private Map<Integer, Epic> epicMap = new HashMap<>();
-    private Map<Integer, Subtask> subtaskMap = new HashMap<>();
+    private final Map<Integer, Task> taskMap = new HashMap<>();
+    private final Map<Integer, Epic> epicMap = new HashMap<>();
+    private final Map<Integer, Subtask> subtaskMap = new HashMap<>();
     private final HistoryManager historyManager;
     private int counter = 1;
 
@@ -44,6 +44,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTaskById(int id) {
+        historyManager.remove(taskMap.get(id));
         taskMap.remove(id);
     }
 
@@ -89,6 +90,7 @@ public class InMemoryTaskManager implements TaskManager {
                 subtaskMap.remove(subtaskId);
             }
         }
+        historyManager.remove(epicMap.get(id));
     }
 
     @Override
@@ -143,6 +145,7 @@ public class InMemoryTaskManager implements TaskManager {
             epic.removeSubtaskId(id);
             updateEpicStatus(epic);
         }
+        historyManager.remove(subtaskMap.get(id));
     }
 
     @Override

@@ -14,6 +14,11 @@ public class InMemoryHistoryManager implements HistoryManager {
         return new ArrayList<>(history);
     }
 
+    @Override
+    public void remove(Task task) {
+        removeHistory(task);
+    }
+
     private void addToHistory(Task task) {
         if (task == null) {
             return;
@@ -22,5 +27,12 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (history.size()>10){
             history.remove(0);
         }
+    }
+
+    public void removeHistory(Task task){
+        if (task == null) {
+            return;
+        }
+        history.remove(task);
     }
 }
