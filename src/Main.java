@@ -63,12 +63,21 @@ public class Main {
         Epic epic1 = new Epic("Epic 1", "Description");
         manager.createEpic(epic1);
 
-        manager.getTaskById(task1.getId());
-        manager.getEpicById(epic1.getId());
-        manager.removeTaskById(task1.getId());
+        Subtask subtask1 = new Subtask("Sub1", "description", Status.DONE, epic1.getId());
+        Subtask subtask2 = new Subtask("Sub2", "description", Status.NEW, epic1.getId());
+        manager.createSubtask(subtask1);
+        manager.createSubtask(subtask2);
+
+        System.out.println(manager.getTaskById(task1.getId()));
+        System.out.println(manager.getEpicById(epic1.getId()));
+        System.out.println(manager.getSubtaskById(subtask1.getId()));
+        System.out.println(manager.getSubtaskById(subtask2.getId()));
+        System.out.println(manager.getTaskById(task1.getId()));
+        manager.removeEpicById(epic1.getId());
 
         List<Task> history = manager.getHistory();
-        System.out.println(history.size()); // Должно быть 1
+        System.out.println(history);
+        System.out.println(history.size());
     }
 }
 
