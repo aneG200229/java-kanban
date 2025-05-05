@@ -1,10 +1,11 @@
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
 
-    private final HashMap<Integer, Node> nodeMap = new HashMap<>();
+    private final Map<Integer, Node> nodeMap = new HashMap<>();
     private Node tail = null;
     private Node head = null;
 
@@ -13,9 +14,8 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (task == null) {
             return;
         } else if (nodeMap.containsKey(task.getId())) {
-            Node oldNode = nodeMap.get(task.getId());
+            Node oldNode = nodeMap.remove(task.getId());
             removeNode(oldNode);
-            nodeMap.remove(task.getId());
         }
         Node newNode = linkLast(task);
         nodeMap.put(task.getId(), newNode);
@@ -31,9 +31,8 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (!nodeMap.containsKey(id)) {
             return;
         } else {
-            Node node = nodeMap.get(id);
+            Node node = nodeMap.remove(id);
             removeNode(node);
-            nodeMap.remove(id);
         }
     }
 
