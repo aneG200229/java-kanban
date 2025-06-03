@@ -44,7 +44,7 @@ public class Task {
         this.id = id;
     }
 
-    public TaskType getType(){
+    public TaskType getType() {
         return TaskType.TASK;
     }
 
