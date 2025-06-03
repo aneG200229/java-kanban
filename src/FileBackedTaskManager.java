@@ -13,18 +13,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     public String toString(Task task) {
-        String type;
-        String epicId = "";
-        if (task instanceof Subtask) {
-            type = TaskType.SUBTASK.name();
-            epicId = String.valueOf(((Subtask) task).getEpicId());
-        } else if (task instanceof Epic) {
-            type = TaskType.EPIC.name();
-        } else {
-            type = TaskType.TASK.name();
-        }
+        String epicId = task.getType() == TaskType.SUBTASK ? String.valueOf(((Subtask) task).getEpicId()) : "";
         return String.format("%d,%s,%s,%s,%s,%s",
-                task.getId(), type, task.getName(), task.getStatus().name(), task.getDescription(), epicId.isEmpty() ? "" : epicId);
+                task.getId(), task.getType().name(), task.getName(), task.getStatus().name(), task.getDescription(), epicId);
     }
 
     public Task fromString(String value) {
@@ -35,8 +26,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         String[] fields = value.split(",", -1); // -1 сохраняет пустые поля в конце
         System.out.println("Обрабатываю строку: " + value + ", найдено полей: " + fields.length);
         if (fields.length != 6) {
-            System.err.println("Неверный формат строки: ожидается 6 полей, найдено " + fields.length + ", строка: " + value);
-            return null;
+            throw new ManagerSaveException("Неверный формат строки: ожидается 6 полей, найдено " + fields.length + ", строка: " + value);
         }
         try {
             int id = Integer.parseInt(fields[0].trim());
@@ -69,11 +59,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 }
             }
         } catch (NumberFormatException e) {
-            System.err.println("Ошибка парсинга строки (NumberFormatException): " + value + ", причина: " + e.getMessage());
-            return null;
+            throw new ManagerSaveException("Ошибка парсинга строки (NumberFormatException): " + value + ", причина: " + e.getMessage(), e);
         } catch (IllegalArgumentException e) {
-            System.err.println("Ошибка парсинга строки (IllegalArgumentException): " + value + ", причина: " + e.getMessage());
-            return null;
+            throw new ManagerSaveException("Ошибка парсинга строки (IllegalArgumentException): " + value + ", причина: " + e.getMessage(), e);
         }
     }
 
@@ -94,16 +82,37 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         try {
             Files.write(taskFile.toPath(), listForFile, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            throw new RuntimeException("ошибка при сохранении в файл: " + e.getMessage());
+            throw new ManagerSaveException("Ошибка при сохранении в файл: " + e.getMessage(), e);
         }
     }
 
-    public static FileBackedTaskManager loadFromFile(File file) throws IOException {
+    public static FileBackedTaskManager loadFromFile(File file) {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(file);
-        List<String> lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        List<String> lines;
+        try {
+            lines = Files.readAllLines(file.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new ManagerSaveException("Ошибка при чтении файла: " + e.getMessage(), e);
+        }
         if (lines.isEmpty()) {
             return fileBackedTaskManager;
         }
+        int maxId = 0;
+        for (String line : lines) {
+            line = line.trim();
+            if (!line.isEmpty() && !line.startsWith("id,type,name,status,description,epicId")) { // Пропускаем заголовок
+                try {
+                    String[] fields = line.split(",", -1);
+                    if (fields.length > 0) {
+                        int id = Integer.parseInt(fields[0].trim());
+                        maxId = Math.max(maxId, id);
+                    }
+                } catch (NumberFormatException e) {
+                    continue;
+                }
+            }
+        }
+        fileBackedTaskManager.setCounter(maxId + 1);
         List<String> dataLines = new ArrayList<>();
         for (int i = 1; i < lines.size(); i++) {
             String line = lines.get(i).trim();
@@ -111,23 +120,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 dataLines.add(line);
             }
         }
-        // Первый проход: EPIC
-        for (String line : dataLines) {
-            Task task = fileBackedTaskManager.fromString(line);
-            if (task instanceof Epic) {
-                fileBackedTaskManager.createEpic((Epic) task);
-            }
-        }
-        // Второй проход: TASK и SUBTASK
-        for (String line : dataLines) {
-            Task task = fileBackedTaskManager.fromString(line);
-            if (task != null) {
-                if (task instanceof Task && !(task instanceof Epic) && !(task instanceof Subtask)) {
-                    fileBackedTaskManager.createTask(task);
-                } else if (task instanceof Subtask) {
-                    fileBackedTaskManager.createSubtask((Subtask) task);
+        try {
+            for (String line : dataLines) {
+                Task task = fileBackedTaskManager.fromString(line);
+                if (task != null && task.getType() == TaskType.EPIC) {
+                    fileBackedTaskManager.createEpic((Epic) task);
                 }
             }
+            for (String line : dataLines) {
+                Task task = fileBackedTaskManager.fromString(line);
+                if (task != null) {
+                    if (task.getType() == TaskType.TASK) {
+                        fileBackedTaskManager.createTask(task);
+                    } else if (task.getType() == TaskType.SUBTASK) {
+                        fileBackedTaskManager.createSubtask((Subtask) task);
+                    }
+                }
+            }
+        } catch (ManagerSaveException e) {
+            throw new ManagerSaveException("Ошибка при загрузке задач из файла: " + e.getMessage(), e);
         }
         List<Epic> epics = fileBackedTaskManager.getEpics();
         for (Epic epic : epics) {
@@ -153,7 +164,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         super.createTask(task);
         save();
     }
-
 }
 
 

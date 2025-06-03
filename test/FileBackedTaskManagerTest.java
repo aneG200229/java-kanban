@@ -68,7 +68,7 @@ public class FileBackedTaskManagerTest {
     }
 
     @Test
-    public void testLoadMultipleTasks() throws IOException, IllegalArgumentException {
+    public void testLoadMultipleTasks() throws IllegalArgumentException {
         FileBackedTaskManager manager = new FileBackedTaskManager(tempFile);
         Task task = new Task("Task1", "Description1", Status.NEW);
         Epic epic = new Epic("Epic1", "Description2");
@@ -80,7 +80,12 @@ public class FileBackedTaskManagerTest {
         System.out.println("Сохраняем данные...");
         manager.save();
 
-        List<String> lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
+        List<String> lines = null;
+        try {
+            lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println("Содержимое файла перед загрузкой: " + lines);
         assertFalse(lines.isEmpty(), "Файл не должен быть пустым");
         assertEquals(4, lines.size(), "Файл должен содержать 4 строки (заголовок + 3 задачи)");
