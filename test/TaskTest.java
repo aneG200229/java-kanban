@@ -27,7 +27,6 @@ class TaskTest {
     }
 
 
-
     @Test
     void subtaskCannotHaveItselfAsEpic() {
         Subtask subtask = new Subtask("Ошибка", "Описание", Status.NEW, 42);
@@ -38,7 +37,6 @@ class TaskTest {
 
         assertNull(manager.getSubtaskById(42), "Subtask не должен ссылаться сам на себя как на Epic");
     }
-
 
 
 }
