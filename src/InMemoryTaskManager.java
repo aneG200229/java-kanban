@@ -20,6 +20,10 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(taskMap.values());
     }
 
+    public void setCounter(int counter) {
+        this.counter = counter;
+    }
+
     @Override
     public void removeTasks() {
         taskMap.clear();
@@ -67,7 +71,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void createEpic(Epic epic) {
-        epic.setId(counter++);
+        if (epic.getId() == 0) { // Предполагаем, что 0 — значение по умолчанию для нового объекта
+            epic.setId(counter++);
+        }
         epicMap.put(epic.getId(), epic);
     }
 
