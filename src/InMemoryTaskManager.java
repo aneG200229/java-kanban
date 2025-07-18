@@ -1,6 +1,7 @@
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     private final Map<Integer, Task> taskMap = new HashMap<>();
@@ -35,6 +36,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTasks() {
+        for (Task task : taskMap.values()) {
+            prioritizedTasks.remove(task);
+        }
         taskMap.clear();
     }
 
@@ -88,6 +92,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeEpics() {
+        for (Subtask subtask : subtaskMap.values()) {
+            prioritizedTasks.remove(subtask);
+        }
         epicMap.clear();
         subtaskMap.clear();
     }
@@ -122,7 +129,11 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicMap.remove(id);
         if (epic != null) {
             for (Integer subtaskId : epic.getSubtaskIds()) {
-                subtaskMap.remove(subtaskId);
+                Subtask subtask = subtaskMap.get(subtaskId);
+                if (subtask != null) {
+                    prioritizedTasks.remove(subtask);
+                    subtaskMap.remove(subtaskId);
+                }
             }
         }
         historyManager.remove(id);
@@ -135,6 +146,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeSubtasks() {
+        for (Subtask subtask : subtaskMap.values()) {
+            prioritizedTasks.remove(subtask);
+        }
         subtaskMap.clear();
         for (Epic epic : epicMap.values()) {
             epic.clearSubtaskIds();
@@ -215,14 +229,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public List<Subtask> getSubtasksByEpicId(int epicId) {
-        List<Subtask> result = new ArrayList<>();
         Epic epic = epicMap.get(epicId);
-        if (epic != null) {
-            for (Integer subtaskId : epic.getSubtaskIds()) {
-                result.add(subtaskMap.get(subtaskId));
-            }
+        if (epic == null) {
+            return new ArrayList<>();
         }
-        return result;
+        return epic.getSubtaskIds().stream().map(subtaskMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -267,37 +280,29 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        LocalDateTime startTime = null;
-        LocalDateTime endTime = null;
-        Duration totalDuration = Duration.ZERO;
+        Optional<LocalDateTime> startTime = subtaskIds.stream()
+                .map(subtaskMap::get)
+                .filter(Objects::nonNull)
+                .map(Subtask::getStartTime)
+                .filter(Objects::nonNull)
+                .min(LocalDateTime::compareTo);
 
-        for (int subtaskId : subtaskIds) {
-            Subtask subtask = subtaskMap.get(subtaskId);
-            if (subtask == null) continue;
+        Optional<LocalDateTime> endTime = subtaskIds.stream()
+                .map(subtaskMap::get)
+                .filter(Objects::nonNull)
+                .map(Subtask::getEndTime)
+                .filter(Objects::nonNull)
+                .max(LocalDateTime::compareTo);
 
-            LocalDateTime subStart = subtask.getStartTime();
-            LocalDateTime subEnd = subtask.getEndTime();
-            Duration subDuration = subtask.getDuration();
+        Duration totalDuration = subtaskIds.stream()
+                .map(subtaskMap::get)
+                .filter(Objects::nonNull)
+                .map(Subtask::getDuration)
+                .filter(Objects::nonNull)
+                .reduce(Duration.ZERO, Duration::plus);
 
-            if (subStart != null) {
-                if (startTime == null || subStart.isBefore(startTime)) {
-                    startTime = subStart;
-                }
-            }
-
-            if (subEnd != null) {
-                if (endTime == null || subEnd.isAfter(endTime)) {
-                    endTime = subEnd;
-                }
-            }
-
-            if (subDuration != null) {
-                totalDuration = totalDuration.plus(subDuration);
-            }
-        }
-
-        epic.setStartTime(startTime);
-        epic.setEndTime(endTime);
+        epic.setStartTime(startTime.orElse(null));
+        epic.setEndTime(endTime.orElse(null));
         epic.setDuration(totalDuration);
     }
 
@@ -331,4 +336,8 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
 }
