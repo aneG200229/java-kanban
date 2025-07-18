@@ -32,7 +32,7 @@ public class FileBackedTaskManagerTest {
         // Проверяем, что файл содержит только заголовок
         List<String> lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
         assertEquals(1, lines.size(), "Файл должен содержать только заголовок");
-        assertEquals("id,type,name,status,description,epic", lines.get(0), "Заголовок должен быть корректным");
+        assertEquals("id,type,name,status,description,epic,duration,startTime", lines.get(0), "Заголовок должен быть корректным");
 
         // Загружаем пустой файл
         FileBackedTaskManager loadedManager = FileBackedTaskManager.loadFromFile(tempFile);
@@ -57,7 +57,7 @@ public class FileBackedTaskManagerTest {
         // Проверяем содержимое файла
         List<String> lines = Files.readAllLines(tempFile.toPath(), StandardCharsets.UTF_8);
         assertEquals(4, lines.size(), "Файл должен содержать 4 строки (заголовок + 3 задачи)");
-        assertEquals("id,type,name,status,description,epic", lines.get(0), "Заголовок должен быть корректным");
+        assertEquals("id,type,name,status,description,epic,duration,startTime", lines.get(0), "Заголовок должен быть корректным");
 
         boolean taskFound = false, epicFound = false, subtaskFound = false;
         for (int i = 1; i < lines.size(); i++) {
