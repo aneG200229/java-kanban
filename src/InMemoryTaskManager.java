@@ -16,9 +16,6 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     Comparator<Task> comparator = (t1, t2) -> {
-        if (t1.getStartTime() == null && t2.getStartTime() == null) return Integer.compare(t1.getId(), t2.getId());
-        if (t1.getStartTime() == null) return 1;
-        if (t2.getStartTime() == null) return -1;
         int result = t1.getStartTime().compareTo(t2.getStartTime());
         return result != 0 ? result : Integer.compare(t1.getId(), t2.getId());
     };
@@ -56,7 +53,9 @@ public class InMemoryTaskManager implements TaskManager {
         }
         task.setId(counter++);
         taskMap.put(task.getId(), task);
-        prioritizedTasks.add(task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
     }
 
 
@@ -66,15 +65,19 @@ public class InMemoryTaskManager implements TaskManager {
         if (oldTask != null) {
             prioritizedTasks.remove(oldTask);
         }
-
         if (isTaskTimeOverlapping(task)) {
             System.out.println("Ошибка: задача пересекается по времени с другой задачей.");
-            if (oldTask != null) prioritizedTasks.add(oldTask);
+            if (oldTask != null) {
+                if (oldTask.getStartTime() != null) {
+                    prioritizedTasks.add(oldTask);
+                }
+            }
             return;
         }
-
         taskMap.put(task.getId(), task);
-        prioritizedTasks.add(task);
+        if (task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
     }
 
 
@@ -178,7 +181,9 @@ public class InMemoryTaskManager implements TaskManager {
 
         subtask.setId(counter++);
         subtaskMap.put(subtask.getId(), subtask);
-        prioritizedTasks.add(subtask);
+        if (subtask.getStartTime() != null) {
+            prioritizedTasks.add(subtask);
+        }
         epic.addSubtaskId(subtask.getId());
         updateEpicStatus(epic);
         updateEpicTime(epic);
@@ -195,13 +200,18 @@ public class InMemoryTaskManager implements TaskManager {
 
             if (isTaskTimeOverlapping(subtask)) {
                 System.out.println("Ошибка: сабтаск пересекается по времени с другой задачей.");
-                if (oldSubtask != null) prioritizedTasks.add(oldSubtask);
+                if (oldSubtask != null) {
+                    if (oldSubtask.getStartTime() != null) {
+                        prioritizedTasks.add(oldSubtask);
+                    }
+                }
                 return;
             }
 
             subtaskMap.put(subtask.getId(), subtask);
-            prioritizedTasks.add(subtask);
-
+            if (subtask.getStartTime() != null) {
+                prioritizedTasks.add(subtask);
+            }
             Epic epic = epicMap.get(subtask.getEpicId());
             if (epic != null) {
                 updateEpicStatus(epic);
@@ -275,7 +285,6 @@ public class InMemoryTaskManager implements TaskManager {
         List<Integer> subtaskIds = epic.getSubtaskIds();
         if (subtaskIds.isEmpty()) {
             epic.setStartTime(null);
-            epic.setEndTime(null);
             epic.setDuration(Duration.ZERO);
             return;
         }
@@ -287,13 +296,6 @@ public class InMemoryTaskManager implements TaskManager {
                 .filter(Objects::nonNull)
                 .min(LocalDateTime::compareTo);
 
-        Optional<LocalDateTime> endTime = subtaskIds.stream()
-                .map(subtaskMap::get)
-                .filter(Objects::nonNull)
-                .map(Subtask::getEndTime)
-                .filter(Objects::nonNull)
-                .max(LocalDateTime::compareTo);
-
         Duration totalDuration = subtaskIds.stream()
                 .map(subtaskMap::get)
                 .filter(Objects::nonNull)
@@ -302,7 +304,6 @@ public class InMemoryTaskManager implements TaskManager {
                 .reduce(Duration.ZERO, Duration::plus);
 
         epic.setStartTime(startTime.orElse(null));
-        epic.setEndTime(endTime.orElse(null));
         epic.setDuration(totalDuration);
     }
 

@@ -121,21 +121,19 @@ class InMemoryTaskManagerTest {
         Task task1 = new Task("Task1", "Desc1", Status.NEW, Duration.ofHours(1), time1);
         Task task2 = new Task("Task2", "Desc2", Status.NEW, Duration.ofHours(1), time2);
         Task task3 = new Task("Task3", "Desc3", Status.NEW, Duration.ofHours(1), time3);
-        Task taskNoTime = new Task("TaskNoTime", "Desc", Status.NEW); // Без времени
 
         // Добавляем в разном порядке
         manager.createTask(task1);    // 15:00
         manager.createTask(task2);    // 10:00
         manager.createTask(task3);    // 12:00
-        manager.createTask(taskNoTime); // null
+
 
         List<Task> prioritized = manager.getPrioritizedTasks();
 
         // Проверяем правильный порядок
-        assertEquals(4, prioritized.size());
+        assertEquals(3, prioritized.size());
         assertEquals(time2, prioritized.get(0).getStartTime()); // 10:00 - первый
         assertEquals(time3, prioritized.get(1).getStartTime()); // 12:00 - второй
         assertEquals(time1, prioritized.get(2).getStartTime()); // 15:00 - третий
-        assertNull(prioritized.get(3).getStartTime());          // null - последний
     }
 }

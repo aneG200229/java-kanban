@@ -5,9 +5,6 @@ import java.util.List;
 
 public class Epic extends Task {
     private List<Integer> subtaskIds;
-    private Duration duration = Duration.ZERO;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
 
 
 
@@ -37,34 +34,6 @@ public class Epic extends Task {
         return TaskType.EPIC;
     }
 
-    @Override
-    public LocalDateTime getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
-    }
-
-    @Override
-    public LocalDateTime getStartTime() {
-        return startTime;
-    }
-
-    @Override
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
-    }
-
-    @Override
-    public Duration getDuration() {
-        return duration;
-    }
-
-    @Override
-    public void setDuration(Duration duration) {
-        this.duration = duration;
-    }
 
     @Override
     public String toString() {
