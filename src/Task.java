@@ -9,6 +9,7 @@ public class Task {
     private int id;
     private Duration duration;
     private LocalDateTime startTime;
+    private LocalDateTime endTime;
 
     public Task(String name, String description, Status status) {
         this.description = description;
@@ -38,6 +39,14 @@ public class Task {
 
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
     }
 
     public String getDescription() {
@@ -76,7 +85,7 @@ public class Task {
         return TaskType.TASK;
     }
 
-    public LocalDateTime getEndTime() {
+    public LocalDateTime calculateEndTime() {
         if (duration != null && startTime != null) {
             return startTime.plus(duration);
         }

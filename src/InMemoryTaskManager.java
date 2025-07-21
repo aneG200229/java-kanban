@@ -15,7 +15,7 @@ public class InMemoryTaskManager implements TaskManager {
         this.historyManager = Managers.getDefaultHistory();
     }
 
-    Comparator<Task> comparator = (t1, t2) -> {
+    private final Comparator<Task> comparator = (t1, t2) -> {
         int result = t1.getStartTime().compareTo(t2.getStartTime());
         return result != 0 ? result : Integer.compare(t1.getId(), t2.getId());
     };
@@ -285,6 +285,7 @@ public class InMemoryTaskManager implements TaskManager {
         List<Integer> subtaskIds = epic.getSubtaskIds();
         if (subtaskIds.isEmpty()) {
             epic.setStartTime(null);
+            epic.setEndTime(null);
             epic.setDuration(Duration.ZERO);
             return;
         }
@@ -296,15 +297,21 @@ public class InMemoryTaskManager implements TaskManager {
                 .filter(Objects::nonNull)
                 .min(LocalDateTime::compareTo);
 
-        Duration totalDuration = subtaskIds.stream()
+        Optional<LocalDateTime> endTime = subtaskIds.stream()
                 .map(subtaskMap::get)
                 .filter(Objects::nonNull)
-                .map(Subtask::getDuration)
+                .map(Subtask::getEndTime)
                 .filter(Objects::nonNull)
-                .reduce(Duration.ZERO, Duration::plus);
+                .max(LocalDateTime::compareTo);
+
+        Duration duration = Duration.ZERO;
+        if (startTime.isPresent() && endTime.isPresent()) {
+            duration = Duration.between(startTime.get(), endTime.get());
+        }
 
         epic.setStartTime(startTime.orElse(null));
-        epic.setDuration(totalDuration);
+        epic.setEndTime(endTime.orElse(null));
+        epic.setDuration(duration);
     }
 
     private boolean isTaskTimeOverlapping(Task newTask) {
@@ -313,14 +320,14 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         LocalDateTime newStart = newTask.getStartTime();
-        LocalDateTime newEnd = newTask.getEndTime();
+        LocalDateTime newEnd = newTask.calculateEndTime();
 
         for (Task existingTask : prioritizedTasks) {
             if (existingTask.getId() == newTask.getId()) continue;
             if (existingTask.getStartTime() == null || existingTask.getDuration() == null) continue;
 
             LocalDateTime existingStart = existingTask.getStartTime();
-            LocalDateTime existingEnd = existingTask.getEndTime();
+            LocalDateTime existingEnd = existingTask.calculateEndTime();
 
 
             boolean isOverlapping = newStart.isBefore(existingEnd) && existingStart.isBefore(newEnd);
