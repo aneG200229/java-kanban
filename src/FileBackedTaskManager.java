@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,8 +16,12 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public String toString(Task task) {
         String epicId = task.getType() == TaskType.SUBTASK ? String.valueOf(((Subtask) task).getEpicId()) : "";
-        return String.format("%d,%s,%s,%s,%s,%s",
-                task.getId(), task.getType().name(), task.getName(), task.getStatus().name(), task.getDescription(), epicId);
+        String duration = task.getDuration() != null ? task.getDuration().toString() : "";
+        String startTime = task.getStartTime() != null ? task.getStartTime().toString() : "";
+
+        return String.format("%d,%s,%s,%s,%s,%s,%s,%s",
+                task.getId(), task.getType().name(), task.getName(), task.getStatus().name(), task.getDescription(),
+                epicId, duration, startTime);
     }
 
     public Task fromString(String value) {
@@ -25,8 +31,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
         String[] fields = value.split(",", -1); // -1 сохраняет пустые поля в конце
         System.out.println("Обрабатываю строку: " + value + ", найдено полей: " + fields.length);
-        if (fields.length != 6) {
-            throw new ManagerSaveException("Неверный формат строки: ожидается 6 полей, найдено " + fields.length + ", строка: " + value);
+        if (fields.length != 8) {
+            throw new ManagerSaveException("Неверный формат строки: ожидается 8 полей, найдено " + fields.length + ", строка: " + value);
         }
         try {
             int id = Integer.parseInt(fields[0].trim());
@@ -38,11 +44,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             if (type == TaskType.SUBTASK && !fields[5].trim().isEmpty()) {
                 epicId = Integer.parseInt(fields[5].trim());
             }
+            Duration duration = null;
+            if (!fields[6].trim().isEmpty()) {
+                duration = Duration.parse(fields[6].trim());
+            }
+            LocalDateTime startTime = null;
+            if (!fields[7].trim().isEmpty()) {
+                startTime = LocalDateTime.parse(fields[7].trim());
+            }
             switch (type) {
                 case TASK -> {
-                    Task task = new Task(name, description, status);
-                    task.setId(id);
-                    return task;
+                    if (duration != null || startTime != null) {
+                        Task task = new Task(name, description, status, duration, startTime);
+                        task.setId(id);
+                        return task;
+                    } else {
+                        Task task = new Task(name, description, status);
+                        task.setId(id);
+                        return task;
+                    }
                 }
                 case EPIC -> {
                     Epic epic = new Epic(name, description);
@@ -50,9 +70,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     return epic;
                 }
                 case SUBTASK -> {
-                    Subtask subtask = new Subtask(name, description, status, epicId);
-                    subtask.setId(id);
-                    return subtask;
+                    if (duration != null || startTime != null) {
+                        Subtask subtask = new Subtask(name, description, status, duration, startTime, epicId);
+                        subtask.setId(id);
+                        return subtask;
+                    } else {
+                        Subtask subtask = new Subtask(name, description, status, epicId);
+                        subtask.setId(id);
+                        return subtask;
+                    }
                 }
                 default -> {
                     return null;
@@ -67,7 +93,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     public void save() {
         ArrayList<String> listForFile = new ArrayList<>();
-        listForFile.add("id,type,name,status,description,epic");
+        listForFile.add("id,type,name,status,description,epic,duration,startTime");
 
         for (Task task : getTasks()) {
             listForFile.add(toString(task));
@@ -100,7 +126,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         int maxId = 0;
         for (String line : lines) {
             line = line.trim();
-            if (!line.isEmpty() && !line.startsWith("id,type,name,status,description,epicId")) { // Пропускаем заголовок
+            if (!line.isEmpty() && !line.startsWith("id,type,name,status,description,epic,duration,startTime")) { // Пропускаем заголовок
                 try {
                     String[] fields = line.split(",", -1);
                     if (fields.length > 0) {
@@ -165,5 +191,3 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         save();
     }
 }
-
-
