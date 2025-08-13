@@ -1,3 +1,5 @@
+package tasks;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -17,7 +19,7 @@ public class Task {
         this.status = status;
     }
 
-    public Task(String name, String description, Status status,  Duration duration, LocalDateTime startTime) {
+    public Task(String name, String description, Status status, Duration duration, LocalDateTime startTime) {
         this.name = name;
         this.description = description;
         this.status = status;
@@ -94,7 +96,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{id=" + id +
+        return "tasks.Task{id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", status=" + status + '}';

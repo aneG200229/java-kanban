@@ -1,4 +1,12 @@
+package manager;
+
+import exception.TaskOverlapException;
+import managers.InMemoryTaskManager;
 import org.junit.jupiter.api.Test;
+import tasks.Epic;
+import tasks.Status;
+import tasks.Subtask;
+import tasks.Task;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -66,27 +74,27 @@ class InMemoryTaskManagerTest {
         manager.createSubtask(subtask);
 
 
-        assertNull(manager.getSubtaskById(100), "Подзадача с ID, равным Epic, не должна быть добавлена.");
+        assertNull(manager.getSubtaskById(100), "Подзадача с ID, равным tasks.Epic, не должна быть добавлена.");
     }
 
     @Test
     void shouldNotAllowOverlappingTasks() {
         InMemoryTaskManager manager = new InMemoryTaskManager();
 
-        // Первая задача: 10:00-12:00 (2 часа)
         LocalDateTime startTime1 = LocalDateTime.of(2024, 1, 1, 10, 0);
         Duration duration1 = Duration.ofHours(2);
         Task task1 = new Task("Task1", "Desc1", Status.NEW, duration1, startTime1);
 
-        // Вторая задача: 11:00-13:00
         LocalDateTime startTime2 = LocalDateTime.of(2024, 1, 1, 11, 0);
         Duration duration2 = Duration.ofHours(2);
         Task task2 = new Task("Task2", "Desc2", Status.NEW, duration2, startTime2);
 
-        manager.createTask(task1);  // Должна добавиться
-        manager.createTask(task2);  // НЕ должна добавиться
+        manager.createTask(task1);
+        assertThrows(TaskOverlapException.class, () -> {
+            manager.createTask(task2);
+        });
 
-        assertEquals(1, manager.getTasks().size(), "Пересекающаяся задача не должна быть добавлена");
+        assertEquals(1, manager.getTasks().size(), "Должна быть только одна задача");
     }
 
     @Test

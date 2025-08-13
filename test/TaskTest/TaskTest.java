@@ -1,4 +1,10 @@
+package TaskTest;
+
+import managers.InMemoryTaskManager;
 import org.junit.jupiter.api.Test;
+import tasks.Status;
+import tasks.Subtask;
+import tasks.Task;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -23,7 +29,7 @@ class TaskTest {
         subtask1.setId(100);
         subtask2.setId(100);
 
-        assertEquals(subtask1, subtask2, "Subtask с одинаковым ID должны быть равны");
+        assertEquals(subtask1, subtask2, "tasks.Subtask с одинаковым ID должны быть равны");
     }
 
 
@@ -35,7 +41,7 @@ class TaskTest {
         InMemoryTaskManager manager = new InMemoryTaskManager();
         manager.createSubtask(subtask);
 
-        assertNull(manager.getSubtaskById(42), "Subtask не должен ссылаться сам на себя как на Epic");
+        assertNull(manager.getSubtaskById(42), "tasks.Subtask не должен ссылаться сам на себя как на tasks.Epic");
     }
 
 

@@ -1,3 +1,11 @@
+package managers;
+
+import exception.TaskOverlapException;
+import tasks.Epic;
+import tasks.Status;
+import tasks.Subtask;
+import tasks.Task;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -48,8 +56,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void createTask(Task task) {
         if (isTaskTimeOverlapping(task)) {
-            System.out.println("Ошибка: задача пересекается по времени с другой задачей.");
-            return;
+            throw new TaskOverlapException("Ошибка: задача пересекается по времени с другой задачей.");
         }
         task.setId(counter++);
         taskMap.put(task.getId(), task);
@@ -66,13 +73,10 @@ public class InMemoryTaskManager implements TaskManager {
             prioritizedTasks.remove(oldTask);
         }
         if (isTaskTimeOverlapping(task)) {
-            System.out.println("Ошибка: задача пересекается по времени с другой задачей.");
-            if (oldTask != null) {
-                if (oldTask.getStartTime() != null) {
-                    prioritizedTasks.add(oldTask);
-                }
+            if (oldTask != null && oldTask.getStartTime() != null) {
+                prioritizedTasks.add(oldTask);
             }
-            return;
+            throw new TaskOverlapException("Задача пересекается по времени");
         }
         taskMap.put(task.getId(), task);
         if (task.getStartTime() != null) {
@@ -175,8 +179,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         if (isTaskTimeOverlapping(subtask)) {
-            System.out.println("Ошибка: сабтаск пересекается по времени с другой задачей.");
-            return;
+            throw new TaskOverlapException("Ошибка: сабтакс пересекается по времени с другой задачей.");
         }
 
         subtask.setId(counter++);
@@ -199,13 +202,10 @@ public class InMemoryTaskManager implements TaskManager {
             }
 
             if (isTaskTimeOverlapping(subtask)) {
-                System.out.println("Ошибка: сабтаск пересекается по времени с другой задачей.");
-                if (oldSubtask != null) {
-                    if (oldSubtask.getStartTime() != null) {
-                        prioritizedTasks.add(oldSubtask);
-                    }
+                if (oldSubtask != null && oldSubtask.getStartTime() != null) {
+                    prioritizedTasks.add(oldSubtask);
                 }
-                return;
+                throw new TaskOverlapException("Подзадача пересекается по времени");
             }
 
             subtaskMap.put(subtask.getId(), subtask);

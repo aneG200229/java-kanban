@@ -1,3 +1,5 @@
+package tasks;
+
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -30,7 +32,7 @@ public class Subtask extends Task {
 
     @Override
     public String toString() {
-        return "Subtask{id=" + getId() +
+        return "tasks.Subtask{id=" + getId() +
                 ", name='" + getName() + '\'' +
                 ", description='" + getDescription() + '\'' +
                 ", status=" + getStatus() +

@@ -1,4 +1,9 @@
+package manager;
+
+import managers.InMemoryHistoryManager;
 import org.junit.jupiter.api.Test;
+import tasks.Status;
+import tasks.Task;
 
 import java.util.List;
 
@@ -22,8 +27,8 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldAddTasksInOrder_whenAddingMultipleTasks() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
-        Task task2 = new Task("Task 2", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
+        Task task2 = new Task("tasks.Task 2", "Desc", Status.NEW);
         task1.setId(1);
         task2.setId(2);
         manager.add(task1);
@@ -38,8 +43,8 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldMoveDuplicateTaskToEnd_whenAddingExistingTask() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
-        Task task2 = new Task("Task 2", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
+        Task task2 = new Task("tasks.Task 2", "Desc", Status.NEW);
         task1.setId(1);
         task2.setId(2);
         manager.add(task1);
@@ -54,11 +59,11 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldRemoveTaskFromHistory_whenRemovingById() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
         task1.setId(1);
-        Task task2 = new Task("Task 2", "Desc", Status.NEW);
+        Task task2 = new Task("tasks.Task 2", "Desc", Status.NEW);
         task2.setId(2);
-        Task task3 = new Task("Task 3", "Description", Status.NEW);
+        Task task3 = new Task("tasks.Task 3", "Description", Status.NEW);
         task3.setId(3);
         manager.add(task1);
         manager.add(task2);
@@ -75,7 +80,7 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldClearHistory_whenRemovingSingleTask() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
         task1.setId(1);
         manager.add(task1);
         manager.remove(1);
@@ -86,11 +91,11 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldRemoveFirstTask_whenRemovingHead() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
         task1.setId(1);
-        Task task2 = new Task("Task 2", "Desc", Status.NEW);
+        Task task2 = new Task("tasks.Task 2", "Desc", Status.NEW);
         task2.setId(2);
-        Task task3 = new Task("Task 3", "Description", Status.NEW);
+        Task task3 = new Task("tasks.Task 3", "Description", Status.NEW);
         task3.setId(3);
         manager.add(task1);
         manager.add(task2);
@@ -105,11 +110,11 @@ class InMemoryHistoryManagerTest {
     @Test
     void shouldRemoveLastTask_whenRemovingTail() {
         InMemoryHistoryManager manager = new InMemoryHistoryManager();
-        Task task1 = new Task("Task 1", "Desc", Status.NEW);
+        Task task1 = new Task("tasks.Task 1", "Desc", Status.NEW);
         task1.setId(1);
-        Task task2 = new Task("Task 2", "Desc", Status.NEW);
+        Task task2 = new Task("tasks.Task 2", "Desc", Status.NEW);
         task2.setId(2);
-        Task task3 = new Task("Task 3", "Description", Status.NEW);
+        Task task3 = new Task("tasks.Task 3", "Description", Status.NEW);
         task3.setId(3);
         manager.add(task1);
         manager.add(task2);
